@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wine Chatbot</title>
+    <!-- Bootstrap CDN link -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('https://th.bing.com/th/id/OIP.iKJsBXY0klVKjsD0mhnQmAHaEK?w=304&h=180&c=7&r=0&o=5&dpr=1.5&pid=1.7') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+        .chat-container {
+            width: 50%;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .chat-header {
+            background: #8e44ad;
+            color: #fff;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.5em;
+            position: relative;
+        }
+        .menu-icon {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            cursor: pointer;
+            font-size: 1.5em;
+        }
+        .chat-box {
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            flex-grow: 1;
+            border-bottom: 1px solid #ddd;
+        }
+        .chat-box .message {
+            margin: 10px 0;
+            animation: fadeIn 0.5s ease-out; /* Example animation */
+        }
+        .chat-box .message.user {
+            text-align: right;
+        }
+        .chat-box .message.bot {
+            text-align: left;
+        }
+        .chat-box .message .content {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+        }
+        .chat-box .message.user .content {
+            background: #3498db;
+            color: #fff;
+        }
+        .chat-box .message.bot .content {
+            background: #ecf0f1;
+            color: #333;
+        }
+        .input-box {
+            display: flex;
+            padding: 15px 20px;
+            background: #2c3e50;
+        }
+        .input-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #7f8c8d;
+            border-radius: 25px;
+            outline: none;
+            margin-right: 10px;
+        }
+        .input-box select, .input-box button, .input-box .stop-button {
+            padding: 10px;
+            border: 1px solid #7f8c8d;
+            border-radius: 25px;
+            outline: none;
+            background: #8e44ad;
+            color: #fff;
+            cursor: pointer;
+        }
+        .input-box button {
+            margin-left: 10px;
+        }
+        .input-box .stop-button {
+            background: #e74c3c;
+            margin-left: 10px;
+        }
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+        }
+        .sidebar a {
+            padding: 10px 15px;
+            text-decoration: none;
+            font-size: 1.2em;
+            color: #fff;
+            display: block;
+            transition: 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #575757;
+        }
+        .sidebar .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 2em;
+            margin-left: 50px;
+        }
+        .history {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+        .new-chat-button {
+            padding: 10px 20px;
+            border: 1px solid #7f8c8d;
+            border-radius: 25px;
+            outline: none;
+            background: #8e44ad;
+            color: #fff;
+            cursor: pointer;
+            margin: 10px;
+            align-self: flex-end;
+        }
+        /* Custom animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="mySidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div class="history" id="history">
+            <!-- Conversation history will be appended here -->
+        </div>
+        <button class="new-chat-button" onclick="clearChat()">New Chat</button>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <span class="menu-icon" onclick="openNav()">&#9776;</span>
+            <h2>Wine Chatbot</h2>
+        </div>
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-box">
+            <input type="text" id="user-input" placeholder="Ask a question...">
+            <select id="language-select" class="form-control">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="it">Italian</option>
+                <option value="nl">Dutch</option>
+                <option value="pt">Portuguese</option>
+                <option value="ru">Russian</option>
+                <option value="zh">Chinese</option>
+                <option value="hi">Hindi</option>
+            </select>
+            <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+            <button class="stop-button btn btn-danger" onclick="stopVoice()">Stop Voice</button>
+            <button onclick="startVoiceRecognition()" class="btn btn-info">🎤</button>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery CDN links -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        let chatHistory = [];
+        let audio = null;
+        let recognition = null;
+
+        function openNav() {
+            document.getElementById("mySidebar").style.width = "250px";
+        }
+
+        function closeNav() {
+            document.getElementById("mySidebar").style.width = "0";
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            const language = document.getElementById('language-select').value;
+            if (userInput.trim() === "") return;
+
+            const chatBox = document.getElementById('chat-box');
+            const userMessage = { role: 'user', content: userInput };
+            chatHistory.push(userMessage);
+            displayMessage(userMessage);
+            updateHistory(userMessage);
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: userInput, language: language })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                const botMessage = { role: 'bot', content: data.answer };
+                chatHistory.push(botMessage);
+                displayMessage(botMessage);
+                updateHistory(botMessage);
+
+                // Add TTS playback if available
+                if (data.tts_url) {
+                    if (audio) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
+                    audio = new Audio(data.tts_url);
+                    audio.play();
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+                const errorMessage = { role: 'bot', content: 'Error occurred. Please try again later.' };
+                chatHistory.push(errorMessage);
+                displayMessage(errorMessage);
+                updateHistory(errorMessage);
+            });
+
+            document.getElementById('user-input').value = '';
+        }
+
+        function displayMessage(message) {
+            const chatBox = document.getElementById('chat-box');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', message.role);
+            messageElement.innerHTML = `<div class="content">${message.content}</div>`;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+        }
+
+        function updateHistory(message) {
+            const history = document.getElementById('history');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', 'history-message', message.role);
+            messageElement.innerHTML = `<div class="content">${message.content}</div>`;
+            history.appendChild(messageElement);
+            history.scrollTop = history.scrollHeight; // Scroll to bottom
+        }
+
+        function clearChat() {
+            chatHistory = [];
+            document.getElementById('chat-box').innerHTML = '';
+            document.getElementById('history').innerHTML = '';
+        }
+
+        // Voice recognition functions (implement as needed)
+        function startVoiceRecognition() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('Your browser does not support speech recognition. Please try a different browser.');
+                return;
+            }
+
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = document.getElementById('language-select').value;
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function () {
+                console.log('Voice recognition started.');
+            };
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                console.log('Voice input:', transcript);
+                document.getElementById('user-input').value = transcript;
+                sendMessage();
+            };
+
+            recognition.onerror = function (event) {
+                console.error('Voice recognition error', event);
+            };
+
+            recognition.onend = function () {
+                console.log('Voice recognition ended.');
+            };
+
+            recognition.start();
+        }
+
+        function stopVoice() {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+
+        function clearChat() {
+            chatHistory = [];
+            const chatBox = document.getElementById('chat-box');
+            const historyBox = document.getElementById('history');
+            chatBox.innerHTML = ''; // Clear chat messages
+            historyBox.innerHTML = ''; // Clear history
+        }
+    </script>
+</body>
+</html>
