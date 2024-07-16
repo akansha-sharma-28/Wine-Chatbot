@@ -29,4 +29,6 @@ This repository contains a Flask-based chatbot application that utilizes natural
 There are three file are:
 1. main.py: Backend server using Flask, integrates Transformer models, Google Translate, and Google Text-to-Speech API.
 2. index.html: Frontend interface for the chatbot using HTML, CSS, and Bootstrap.
-3. Sample Question Answers.json: JSON file containing sample question-answer pairs used for answering user queries.
+   # Note:
+     First we create the New Folder name as template and then create the HTML file name as index.html. 
+4. Sample Question Answers.json: JSON file containing sample question-answer pairs used for answering user queries.
